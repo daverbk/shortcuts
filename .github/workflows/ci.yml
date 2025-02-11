@@ -27,7 +27,7 @@ jobs:
 
       - name: Mask input
         run: |
-          echo "::add-mask::"${{ github.event.inputs.text_block }}
+          echo "::add-mask::${{ github.event.inputs.text_block }}"
 
       - name: Update Dashboard
         env:
