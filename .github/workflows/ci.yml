@@ -31,4 +31,5 @@ jobs:
           BLOCK_ID: ${{ secrets.BLOCK_ID }}
           CONTENT: ${{ github.event.inputs.block_text }}
         run: |
+          echo "::add-mask::$CONTENT"
           python morning-dashboard.py
