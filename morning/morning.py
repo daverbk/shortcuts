@@ -1,4 +1,4 @@
-from update import Budget, Meeting, ToDo, Habit, Weather, Birthday, Headline, Update
+from update import Budget, Meeting, ToDo, Habit, Weather, Birthday, Headline
 
 updates = [
     Budget(),

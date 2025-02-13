@@ -1,13 +1,12 @@
 import os
 from abc import ABC, abstractmethod
 
-import httpx
 from notion_client import Client
 
 
 class Update(ABC):
     def __init__(self):
-        self.client = Client(auth=os.environ["NOTION_TOKEN"])
+        self.client = Client(auth=os.environ['NOTION_TOKEN'])
 
     @abstractmethod
     def run(self):
@@ -40,35 +39,31 @@ class Habit(Update):
 
 
 class Budget(Update):
-
-    budget_page_id = os.environ["BUDGET_PAGE"]
-    ratios = {
-        "pln": "PlnUsdRate",
-        "eur": "EurUsdRate"
+    budget_page_id = os.environ['BUDGET_PAGE']
+    currencies = {
+        'pln': 'PlnUsdRate',
+        'eur': 'EurUsdRate',
+        'byn': 'BynUsdRate'
     }
 
+    def __init__(self):
+        super().__init__()
+        from service import CurrencyRatioResolver
+        self.currency_rate_resolver = CurrencyRatioResolver()
+
     def run(self):
-        # Get currency data from an external api
-        # Update the rates on the budgeting page
-
-        # Byn -> Usd
-        # Eur -> Usd
-        # Pln -> Usd
-
-        for ratio in self.ratios:
-            self.update_currency_rate(ratio)
-
+        for currency in self.currencies:
+            self.update_currency_rate(currency)
         # Update the total on the dashboard page
 
-        pass
-
-    def update_currency_rate(self, of):
-        update = {
-            self.ratios[of]: {
-                "number": "asdf"
+    def update_currency_rate(self, currency):
+        ratio = self.currency_rate_resolver.resolve(currency)
+        self.client.pages.update(page_id=self.budget_page_id, properties={
+            self.currencies[currency]: {
+                'number': ratio
             }
-        }
-        self.client.pages.update(page_id=self.budget_page_id, properties=update)
+        })
+
 
 class Birthday(Update):
     def run(self):
