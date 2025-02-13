@@ -40,7 +40,7 @@ class Habit(Update):
 
 
 class Budget(Update):
-    frankfurter_url = os.environ["FRANKFURTER_URL"]
+
     budget_page_id = os.environ["BUDGET_PAGE"]
     ratios = {
         "pln": "PlnUsdRate",
@@ -63,18 +63,12 @@ class Budget(Update):
         pass
 
     def update_currency_rate(self, of):
-        rate = self.get_currency_ration(of)
         update = {
             self.ratios[of]: {
-                "number": rate
+                "number": "asdf"
             }
         }
         self.client.pages.update(page_id=self.budget_page_id, properties=update)
-
-    def get_currency_ration(self, of):
-        response = httpx.get(url=self.frankfurter_url, params={"from": of, "to": "usd"}).json()
-        return response['rates']['USD']
-
 
 class Birthday(Update):
     def run(self):
