@@ -17,7 +17,8 @@ on:
         type: string
 
 jobs:
-  build:
+  update_dashboard:
+    if: github.actor == 'daverbk'
     runs-on: ubuntu-latest
 
     steps:
