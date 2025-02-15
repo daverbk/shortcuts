@@ -1,6 +1,8 @@
+import json
 import os
+import textwrap
 from abc import ABC, abstractmethod
-from datetime import date
+from datetime import date, datetime
 
 from notion_client import Client
 
@@ -15,8 +17,30 @@ class Update(ABC):
 
 
 class Meeting(Update):
+    meetings = os.environ['MEETINGS']
+    meetings_block_id = os.environ['MEETINGS_BLOCK']
+
+    def __init__(self):
+        super().__init__()
+        self.json_meetings = json.loads(self.meetings)
+
     def run(self):
-        pass
+        self.client.blocks.update(
+            block_id=self.meetings_block_id,
+            code=get_rich_text_update(self.parse_meetings())
+        )
+
+    def parse_meetings(self):
+        result = ''
+        if self.json_meetings:
+            for meeting in self.json_meetings:
+                result += f'''
+                # {meeting['title']} #
+                {get_formatted_time(meeting['start_date'])} - {get_formatted_time(meeting['end_date'])}
+            '''
+        else:
+            result = '# 🤘 No meetings for today! Hooray! 🙂‍↕️ #'
+        return textwrap.dedent(result)
 
 
 class ToDo(Update):
@@ -40,7 +64,7 @@ class Habit(Update):
 
     def run(self):
         habits_db = self.client.databases.query(database_id=self.habits_database_id, filter={
-            'property': "Created time",
+            'property': 'Created time',
             'date': {
                 'on_or_after': date.today().isoformat()
             }
@@ -83,11 +107,37 @@ class Budget(Update):
         budget_data = self.client.databases.query(database_id=self.budget_db_id)
         total = budget_data['results'][0]['properties']['Total']['formula']['number']
         total_comma = '{:,}'.format(total)
-        self.client.blocks.update(block_id=self.budget_block_id, code={
-            'rich_text': [{'text': {'content': "# " + total_comma + " #"}}]
-        })
+        self.client.blocks.update(
+            block_id=self.budget_block_id,
+            code=get_rich_text_update(f'# $ {total_comma} #')
+        )
 
 
 class Birthday(Update):
+    birthdays = os.environ['BIRTHDAYS']
+    birthdays_block_id = os.environ['BIRTHDAYS_BLOCK']
+
+    def __init__(self):
+        super().__init__()
+        self.json_birthdays = json.loads(self.birthdays)
+
     def run(self):
-        pass
+        self.client.blocks.update(
+            block_id=self.birthdays_block_id,
+            code=get_rich_text_update(self.parse_birthdays())
+        )
+
+    def parse_birthdays(self):
+        birthday_date = datetime.fromisoformat(self.json_birthdays[0]['start_date'])
+        days_left = (birthday_date.replace(tzinfo=None) - datetime.today()).days
+        header = f'# ⏳ In {str(days_left)} day(s) ⏳ #' if days_left > 0 else '# 🎉 Today 🎉 #'
+        event_title = self.json_birthdays[0]['title']
+        return f'{header}\n{event_title}'
+
+
+def get_formatted_time(date_str):
+    return datetime.fromisoformat(date_str).strftime(format('%H:%M'))
+
+
+def get_rich_text_update(data):
+    return {'rich_text': [{'text': {'content': data}}]}
