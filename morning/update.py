@@ -1,6 +1,6 @@
-import locale
 import os
 from abc import ABC, abstractmethod
+from datetime import date
 
 from notion_client import Client
 
@@ -35,8 +35,20 @@ class Headline(Update):
 
 
 class Habit(Update):
+    habits_database_id = os.environ['HABITS_DB']
+    habits_block_id = os.environ['HABITS_BLOCK']
+
     def run(self):
-        pass
+        habits_db = self.client.databases.query(database_id=self.habits_database_id, filter={
+            'property': "Created time",
+            'date': {
+                'on_or_after': date.today().isoformat()
+            }
+        })
+        today_id = habits_db['results'][0]['id']
+        self.client.blocks.update(block_id=self.habits_block_id, callout={
+            'rich_text': [{'mention': {'page': {'id': today_id}}}]
+        })
 
 
 class Budget(Update):
