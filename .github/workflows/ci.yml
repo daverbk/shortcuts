@@ -3,8 +3,16 @@ name: Dashboard Update
 on:
   workflow_dispatch:
     inputs:
-      text_block:
-        description: "Custom text to put in a Notion block"
+      meetings:
+        description: "Today's meetings"
+        required: true
+        type: string
+      birthdays:
+        description: "The closest birthday"
+        required: true
+        type: string
+      to_dos:
+        description: "To dos to resolve"
         required: true
         type: string
 
@@ -31,7 +39,21 @@ jobs:
       - name: Update Dashboard
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-          BLOCK_ID: ${{ secrets.BLOCK_ID }}
-          CONTENT: ${{ github.event.inputs.text_block }}
+          FRANKFURTER_URL: ${{ secrets.FRANKFURTER_URL }}
+          NB_RB_URL: ${{ secrets.NB_RB_URL }}
+
+          BUDGET_PAGE: ${{ secrets.BUDGET_PAGE }}
+          BUDGET_BLOCK: ${{ secrets.BUDGET_BLOCK }}
+          HABITS_BLOCK: ${{ secrets.HABITS_BLOCK }}
+          TO_DOS_BLOCK: ${{ secrets.TO_DOS_BLOCK }}
+          MEETINGS_BLOCK: ${{ secrets.MEETINGS_BLOCK }}
+          BIRTHDAYS_BLOCK: ${{ secrets.BIRTHDAYS_BLOCK }}
+
+          BUDGET_DB: ${{ secrets.BUDGET_DB }}
+          HABITS_DB: ${{ secrets.HABITS_DB }}
+
+          MEETINGS: ${{ github.event.inputs.meetings }}
+          BIRTHDAYS: ${{ github.event.inputs.birthdays }}
+          TO_DOS: ${{ github.event.inputs.to_dos }}
         run: |
-          python morning-dashboard.py
+          python morning/morning.py
