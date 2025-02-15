@@ -99,7 +99,7 @@ class Habit(Update):
         habits_db = self.client.databases.query(database_id=self.habits_database_id, filter={
             'property': 'Created time',
             'date': {
-                'on_or_after': date.today().isoformat()
+                'on_or_before': date.today().isoformat()
             }
         })
         today_id = habits_db['results'][0]['id']
