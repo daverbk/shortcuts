@@ -40,12 +40,45 @@ class Meeting(Update):
             '''
         else:
             result = '# 🤘 No meetings for today! Hooray! 🙂‍↕️ #'
-        return textwrap.dedent(result)
+        return textwrap.dedent(result).rstrip('\r\n')
 
 
 class ToDo(Update):
+    to_dos = os.environ['TO_DOS']
+    to_dos_block_id = os.environ['TO_DOS_BLOCK']
+
+    def __init__(self):
+        super().__init__()
+        self.json_to_dos = json.loads(self.to_dos)
+
     def run(self):
-        pass
+        current_children = self.client.blocks.children.list(block_id=self.to_dos_block_id)
+        for child in current_children['results']:
+            self.client.blocks.delete(block_id=child['id'])
+        self.client.blocks.children.append(
+            block_id=self.to_dos_block_id,
+            children=self.chunk_blocks()
+        )
+
+    def chunk_blocks(self):
+        return [
+            {
+                'object': 'block',
+                'type': 'to_do',
+                'to_do': {
+                    'rich_text': [
+                        {
+                            'type': 'text',
+                            'text': {
+                                'content': todo
+                            }
+                        }
+                    ],
+                    'checked': False
+                }
+            }
+            for todo in self.json_to_dos
+        ]
 
 
 class Weather(Update):
