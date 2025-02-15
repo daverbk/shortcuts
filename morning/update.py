@@ -1,3 +1,4 @@
+import locale
 import os
 from abc import ABC, abstractmethod
 
@@ -40,6 +41,8 @@ class Habit(Update):
 
 class Budget(Update):
     budget_page_id = os.environ['BUDGET_PAGE']
+    budget_db_id = os.environ['BUDGET_DB']
+    budget_block_id = os.environ['BUDGET_BLOCK']
     currencies = {
         'pln': 'PlnUsdRate',
         'eur': 'EurUsdRate',
@@ -54,7 +57,7 @@ class Budget(Update):
     def run(self):
         for currency in self.currencies:
             self.update_currency_rate(currency)
-        # Update the total on the dashboard page
+        self.drag_total_to_dashboard()
 
     def update_currency_rate(self, currency):
         ratio = self.currency_rate_resolver.resolve(currency)
@@ -62,6 +65,14 @@ class Budget(Update):
             self.currencies[currency]: {
                 'number': ratio
             }
+        })
+
+    def drag_total_to_dashboard(self):
+        budget_data = self.client.databases.query(database_id=self.budget_db_id)
+        total = budget_data['results'][0]['properties']['Total']['formula']['number']
+        total_comma = '{:,}'.format(total)
+        self.client.blocks.update(block_id=self.budget_block_id, code={
+            'rich_text': [{'text': {'content': "# " + total_comma + " #"}}]
         })
 
 
