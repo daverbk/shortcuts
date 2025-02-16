@@ -1,0 +1,14 @@
+[tool.pytest.ini_options]
+env = [
+    "FRANKFURTER_URL=",
+    "NB_RB_URL=",
+    "NOTION_TOKEN=",
+    "MEETINGS_BLOCK=",
+    "BUDGET_BLOCK=",
+    "BUDGET_PAGE=",
+    "HABITS_BLOCK",
+    "TO_DOS_BLOCK=",
+    "BIRTHDAYS_BLOCK=",
+    "BUDGET_DB=",
+    "HABITS_DB="
+]

@@ -6,6 +6,9 @@ from datetime import date, datetime
 
 from notion_client import Client
 
+from service.currency_service import CurrencyRatioResolver
+from update.helper import format_time, rich_text_update
+
 
 class Update(ABC):
     def __init__(self):
@@ -17,17 +20,16 @@ class Update(ABC):
 
 
 class Meeting(Update):
-    meetings = os.environ['MEETINGS']
-    meetings_block_id = os.environ['MEETINGS_BLOCK']
-
     def __init__(self):
         super().__init__()
+        self.meetings = os.environ['MEETINGS']
+        self.meetings_block_id = os.environ['MEETINGS_BLOCK']
         self.json_meetings = json.loads(self.meetings)
 
     def run(self):
         self.client.blocks.update(
             block_id=self.meetings_block_id,
-            code=get_rich_text_update(self.parse_meetings())
+            code=rich_text_update(self.parse_meetings())
         )
 
     def parse_meetings(self):
@@ -36,7 +38,7 @@ class Meeting(Update):
             for meeting in self.json_meetings:
                 result += f'''
                 # {meeting['title']} #
-                {get_formatted_time(meeting['start_date'])} - {get_formatted_time(meeting['end_date'])}
+                {format_time(meeting['start_date'])} - {format_time(meeting['end_date'])}
             '''
         else:
             result = '# 🤘 No meetings for today! Hooray! 🙂‍↕️ #'
@@ -44,11 +46,10 @@ class Meeting(Update):
 
 
 class ToDo(Update):
-    to_dos = os.environ['TO_DOS']
-    to_dos_block_id = os.environ['TO_DOS_BLOCK']
-
     def __init__(self):
         super().__init__()
+        self.to_dos = os.environ['TO_DOS']
+        self.to_dos_block_id = os.environ['TO_DOS_BLOCK']
         self.json_to_dos = json.loads(self.to_dos)
 
     def run(self):
@@ -92,8 +93,10 @@ class Headline(Update):
 
 
 class Habit(Update):
-    habits_database_id = os.environ['HABITS_DB']
-    habits_block_id = os.environ['HABITS_BLOCK']
+    def __init__(self):
+        super().__init__()
+        self.habits_database_id = os.environ['HABITS_DB']
+        self.habits_block_id = os.environ['HABITS_BLOCK']
 
     def run(self):
         habits_db = self.client.databases.query(database_id=self.habits_database_id, filter={
@@ -109,9 +112,6 @@ class Habit(Update):
 
 
 class Budget(Update):
-    budget_page_id = os.environ['BUDGET_PAGE']
-    budget_db_id = os.environ['BUDGET_DB']
-    budget_block_id = os.environ['BUDGET_BLOCK']
     currencies = {
         'pln': 'PlnUsdRate',
         'eur': 'EurUsdRate',
@@ -120,7 +120,9 @@ class Budget(Update):
 
     def __init__(self):
         super().__init__()
-        from service import CurrencyRatioResolver
+        self.budget_page_id = os.environ['BUDGET_PAGE']
+        self.budget_db_id = os.environ['BUDGET_DB']
+        self.budget_block_id = os.environ['BUDGET_BLOCK']
         self.currency_rate_resolver = CurrencyRatioResolver()
 
     def run(self):
@@ -142,22 +144,21 @@ class Budget(Update):
         total_comma = '{:,}'.format(total)
         self.client.blocks.update(
             block_id=self.budget_block_id,
-            code=get_rich_text_update(f'# $ {total_comma} #')
+            code=rich_text_update(f'# $ {total_comma} #')
         )
 
 
 class Birthday(Update):
-    birthdays = os.environ['BIRTHDAYS']
-    birthdays_block_id = os.environ['BIRTHDAYS_BLOCK']
-
     def __init__(self):
         super().__init__()
+        self.birthdays = os.environ['BIRTHDAYS']
+        self.birthdays_block_id = os.environ['BIRTHDAYS_BLOCK']
         self.json_birthdays = json.loads(self.birthdays)
 
     def run(self):
         self.client.blocks.update(
             block_id=self.birthdays_block_id,
-            code=get_rich_text_update(self.parse_birthdays())
+            code=rich_text_update(self.parse_birthdays())
         )
 
     def parse_birthdays(self):
@@ -166,11 +167,3 @@ class Birthday(Update):
         header = f'# ⏳ In {str(days_left)} day(s) ⏳ #' if days_left > 0 else '# 🎉 Today 🎉 #'
         event_title = self.json_birthdays[0]['title']
         return f'{header}\n{event_title}'
-
-
-def get_formatted_time(date_str):
-    return datetime.fromisoformat(date_str).strftime(format('%H:%M'))
-
-
-def get_rich_text_update(data):
-    return {'rich_text': [{'text': {'content': data}}]}
