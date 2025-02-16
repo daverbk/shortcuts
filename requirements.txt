@@ -1,0 +1,5 @@
+httpx
+notion-client
+pytest
+pytest-env
+pytest-cov

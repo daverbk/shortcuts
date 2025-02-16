@@ -35,7 +35,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install notion-client
+          pip install -r requirements.txt 
 
       - name: Update Dashboard
         env:
@@ -57,4 +57,4 @@ jobs:
           BIRTHDAYS: ${{ github.event.inputs.birthdays }}
           TO_DOS: ${{ github.event.inputs.to_dos }}
         run: |
-          python morning/morning.py
+          python dashboard 
