@@ -1,12 +1,13 @@
 import json
 import os
+from datetime import datetime, timedelta
 from unittest.mock import MagicMock
 
 import pytest
 
 from service.currency_service import CurrencyRatioResolver
 from update.helper import rich_text_update, format_time
-from update.update import Meeting, ToDo, Budget, Habit
+from update.update import Meeting, ToDo, Budget, Habit, Birthday
 
 
 @pytest.fixture
@@ -122,6 +123,36 @@ def test_habit_run(mock_notion_client):
     mock_notion_client.blocks.update.assert_called_once_with(
         block_id=habit_update.habits_block_id,
         callout={'rich_text': [{'mention': {'page': {'id': 'mock-id'}}}]}
+    )
+
+
+def test_birthday_today(mock_notion_client):
+    today = datetime.today().isoformat()
+    os.environ['BIRTHDAYS'] = json.dumps([{"start_date": today, "title": "Alice"}])
+
+    birthday = Birthday()
+    birthday.client = mock_notion_client
+    birthday.run()
+
+    expected_text = '# 🎉 Today 🎉 #\nAlice'
+    mock_notion_client.blocks.update.assert_called_with(
+        block_id=birthday.birthdays_block_id,
+        code={'rich_text': [{'text': {'content': expected_text}}]}
+    )
+
+
+def test_birthday_future(mock_notion_client):
+    future_date = (datetime.today().replace() + timedelta(days=5)).isoformat()
+    os.environ['BIRTHDAYS'] = json.dumps([{"start_date": future_date, "title": "Bob"}])
+
+    birthday = Birthday()
+    birthday.client = mock_notion_client
+    birthday.run()
+
+    expected_text = '# ⏳ In 5 day(s) ⏳ #\nBob'
+    mock_notion_client.blocks.update.assert_called_with(
+        block_id=birthday.birthdays_block_id,
+        code={'rich_text': [{'text': {'content': expected_text}}]}
     )
 
 

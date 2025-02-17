@@ -163,7 +163,7 @@ class Birthday(Update):
 
     def parse_birthdays(self):
         birthday_date = datetime.fromisoformat(self.json_birthdays[0]['start_date'])
-        days_left = (birthday_date.replace(tzinfo=None) - datetime.today()).days
+        days_left = (birthday_date.replace(tzinfo=None) - datetime.today().replace(hour=0,minute=0)).days
         header = f'# ⏳ In {str(days_left)} day(s) ⏳ #' if days_left > 0 else '# 🎉 Today 🎉 #'
         event_title = self.json_birthdays[0]['title']
         return f'{header}\n{event_title}'
