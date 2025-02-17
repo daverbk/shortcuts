@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Mask inputs
-        uses: levibostian/action-hide-sensitive-inputs@f6daa1ca2a9ca93ae826fc5627fe551e11e7aa07
+        uses: levibostian/action-hide-sensitive-inputs@80877460a95aa5e56cba23314096ef0e0a3c10c1
 
       - name: Set up Python
         uses: actions/setup-python@v4
