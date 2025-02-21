@@ -7,6 +7,7 @@ from datetime import date, datetime
 from notion_client import Client
 
 from service.currency_service import CurrencyRatioResolver
+from service.weather_service import OpenMeteoWeatherService
 from update.helper import format_time, rich_text_update
 
 
@@ -83,8 +84,26 @@ class ToDo(Update):
 
 
 class Weather(Update):
+    def __init__(self):
+        super().__init__()
+        self.weather_client = OpenMeteoWeatherService()
+        self.weather_row_id = os.environ['WEATHER_ROW']
+        self.location = os.environ['LOCATION']
+        self.json_location = json.loads(self.location)
+
     def run(self):
-        pass
+        data = self.weather_client.get_daily(self.json_location['latitude'], self.json_location['longitude'])
+        self.client.blocks.update(
+            block_id=self.weather_row_id,
+            table_row={
+                'cells': [
+                    [{'text': {'content': str(int(data['max']))}}],
+                    [{'text': {'content': str(int(data['min']))}}],
+                    [{'text': {'content': str(data['sunrise'])}}],
+                    [{'text': {'content': str(data['sunset'])}}]
+                ]
+            }
+        )
 
 
 class Headline(Update):
@@ -163,7 +182,7 @@ class Birthday(Update):
 
     def parse_birthdays(self):
         birthday_date = datetime.fromisoformat(self.json_birthdays[0]['start_date'])
-        days_left = (birthday_date.replace(tzinfo=None) - datetime.today().replace(hour=0,minute=0)).days
+        days_left = (birthday_date.replace(tzinfo=None) - datetime.today().replace(hour=0, minute=0)).days
         header = f'# ⏳ In {str(days_left)} day(s) ⏳ #' if days_left > 0 else '# 🎉 Today 🎉 #'
         event_title = self.json_birthdays[0]['title']
         return f'{header}\n{event_title}'
