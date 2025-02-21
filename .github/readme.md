@@ -2,8 +2,7 @@
 
 [![CI](https://github.com/daverbk/shortcuts/actions/workflows/dashboard_update.yml/badge.svg)](https://github.com/daverbk/shortcuts/actions/workflows/dashboard_update.yml)
 [![CI](https://github.com/daverbk/shortcuts/actions/workflows/test.yml/badge.svg)](https://github.com/daverbk/shortcuts/actions/workflows/test.yml)
-
-[![Coverage Status](https://coveralls.io/repos/github/daverbk/shortcuts/badge.png?branch=main)](https://coveralls.io/github/daverbk/shortcuts?branch=main)
+[![Coverage Status](https://coveralls.io/repos/github/daverbk/shortcuts/badge.svg?branch=main)](https://coveralls.io/github/daverbk/shortcuts?branch=main)
 
 This repo is just about playing with Apple shortcuts. I want to create one to open a so-called "daily dashboard" every
 morning. Here is its high-leve diagram 😁
