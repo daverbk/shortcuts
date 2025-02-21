@@ -4,8 +4,9 @@ import httpx
 
 
 class CurrencyRatioResolver:
-    frankfurter_url = os.environ['FRANKFURTER_URL']
-    nb_rb_url = os.environ['NB_RB_URL']
+    def __init__(self):
+        self.frankfurter_url = os.environ['FRANKFURTER_URL']
+        self.nb_rb_url = os.environ['NB_RB_URL']
 
     def resolve(self, currency):
         if currency in ['pln', 'eur']:

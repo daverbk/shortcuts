@@ -4,3 +4,7 @@ pytest
 pytest-env
 pytest-cov
 coveralls
+openmeteo-requests
+requests-cache
+retry-requests
+numpy
