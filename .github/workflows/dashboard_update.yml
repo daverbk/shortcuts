@@ -53,11 +53,13 @@ jobs:
           TO_DOS_BLOCK: ${{ secrets.TO_DOS_BLOCK }}
           MEETINGS_BLOCK: ${{ secrets.MEETINGS_BLOCK }}
           BIRTHDAYS_BLOCK: ${{ secrets.BIRTHDAYS_BLOCK }}
+          NEWSLETTER_BLOCK: ${{ secrets.NEWSLETTER_BLOCK }}
           WEATHER_ROW: ${{ secrets.WEATHER_ROW }}
 
           BUDGET_DB: ${{ secrets.BUDGET_DB }}
           HABITS_DB: ${{ secrets.HABITS_DB }}
 
+          FEEDS: ${{ secrets.FEEDS }}
           MEETINGS: ${{ github.event.inputs.meetings }}
           BIRTHDAYS: ${{ github.event.inputs.birthdays }}
           TO_DOS: ${{ github.event.inputs.to_dos }}
