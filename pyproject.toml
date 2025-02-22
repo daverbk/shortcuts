@@ -10,5 +10,11 @@ env = [
     "TO_DOS_BLOCK=",
     "BIRTHDAYS_BLOCK=",
     "BUDGET_DB=",
-    "HABITS_DB="
+    "HABITS_DB=",
+    "WEATHER_ROW="
+]
+
+[tool.coverage.report]
+exclude_also = [
+    'if __name__ == .__main__.:'
 ]

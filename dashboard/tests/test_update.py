@@ -1,19 +1,47 @@
 import json
 import os
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from service.currency_service import CurrencyRatioResolver
 from update.helper import rich_text_update, format_time
-from update.update import Meeting, ToDo, Budget, Habit, Birthday
+from update.update import Meeting, ToDo, Budget, Habit, Birthday, Weather, main
 
 
 @pytest.fixture
 def mock_notion_client():
     mock_client = MagicMock()
     return mock_client
+
+
+@pytest.fixture
+def mock_updates():
+    with patch('update.update.Budget') as MockBudget, \
+            patch('update.update.Meeting') as MockMeeting, \
+            patch('update.update.ToDo') as MockToDo, \
+            patch('update.update.Habit') as MockHabit, \
+            patch('update.update.Weather') as MockWeather, \
+            patch('update.update.Birthday') as MockBirthday, \
+            patch('update.update.Headline') as MockHeadline:
+        MockBudget.return_value.run = MagicMock()
+        MockMeeting.return_value.run = MagicMock()
+        MockToDo.return_value.run = MagicMock()
+        MockHabit.return_value.run = MagicMock()
+        MockWeather.return_value.run = MagicMock()
+        MockBirthday.return_value.run = MagicMock()
+        MockHeadline.return_value.run = MagicMock()
+
+        yield {
+            'Budget': MockBudget,
+            'Meeting': MockMeeting,
+            'ToDo': MockToDo,
+            'Habit': MockHabit,
+            'Weather': MockWeather,
+            'Birthday': MockBirthday,
+            'Headline': MockHeadline
+        }
 
 
 def test_meeting_run(mock_notion_client):
@@ -58,7 +86,7 @@ def test_meeting_run_with_no_meetings(mock_notion_client):
 
 
 def test_todo_run(mock_notion_client):
-    mock_notion_client.blocks.children.list.return_value = {"results": [{"id": "mock-id"}]}
+    mock_notion_client.blocks.children.list.return_value = {'results': [{'id': 'mock-id'}]}
     mock_notion_client.blocks.children.append.return_value = None
 
     mock_to_do_data = ['Buy groceries']
@@ -69,7 +97,7 @@ def test_todo_run(mock_notion_client):
 
     todo_update.run()
 
-    mock_notion_client.blocks.delete.assert_called_once_with(block_id="mock-id")
+    mock_notion_client.blocks.delete.assert_called_once_with(block_id='mock-id')
     mock_notion_client.blocks.children.append.assert_called_once_with(
         block_id=todo_update.to_dos_block_id,
         children=[{'object': 'block', 'type': 'to_do',
@@ -128,7 +156,7 @@ def test_habit_run(mock_notion_client):
 
 def test_birthday_today(mock_notion_client):
     today = datetime.today().isoformat()
-    os.environ['BIRTHDAYS'] = json.dumps([{"start_date": today, "title": "Alice"}])
+    os.environ['BIRTHDAYS'] = json.dumps([{'start_date': today, 'title': 'Alice'}])
 
     birthday = Birthday()
     birthday.client = mock_notion_client
@@ -143,7 +171,7 @@ def test_birthday_today(mock_notion_client):
 
 def test_birthday_future(mock_notion_client):
     future_date = (datetime.today().replace() + timedelta(days=5)).isoformat()
-    os.environ['BIRTHDAYS'] = json.dumps([{"start_date": future_date, "title": "Bob"}])
+    os.environ['BIRTHDAYS'] = json.dumps([{'start_date': future_date, 'title': 'Bob'}])
 
     birthday = Birthday()
     birthday.client = mock_notion_client
@@ -154,6 +182,32 @@ def test_birthday_future(mock_notion_client):
         block_id=birthday.birthdays_block_id,
         code={'rich_text': [{'text': {'content': expected_text}}]}
     )
+
+
+def test_weather_update(mock_notion_client):
+    os.environ['WEATHER'] = json.dumps(
+        {'max': 25, 'min': 15, 'sunrise': '2025-02-23T06:30:00+03:00', 'sunset': '2025-02-23T18:45:00+03:00'})
+    weather = Weather()
+    weather.client = mock_notion_client
+    weather.run()
+
+    mock_notion_client.blocks.update.assert_called_with(
+        block_id='',
+        table_row={
+            'cells': [
+                [{'text': {'content': '25'}}],
+                [{'text': {'content': '15'}}],
+                [{'text': {'content': '06:30'}}],
+                [{'text': {'content': '18:45'}}]
+            ]
+        }
+    )
+
+
+def test_main_executes_updates(mock_updates):
+    main()
+    for name, mock_class in mock_updates.items():
+        mock_class.return_value.run.assert_called_once()
 
 
 def test_get_rich_text_update():
