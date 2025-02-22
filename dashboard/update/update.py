@@ -170,3 +170,18 @@ class Birthday(Update):
         header = f'# ⏳ In {str(days_left)} day(s) ⏳ #' if days_left > 0 else '# 🎉 Today 🎉 #'
         event_title = self.json_birthdays[0]['title']
         return f'{header}\n{event_title}'
+
+
+def main():
+    updates = [
+        Budget(),
+        Meeting(),
+        ToDo(),
+        Habit(),
+        Weather(),
+        Birthday(),
+        Headline()
+    ]
+
+    for update in updates:
+        update.run()
