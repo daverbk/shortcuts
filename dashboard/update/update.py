@@ -4,10 +4,11 @@ import textwrap
 from abc import ABC, abstractmethod
 from datetime import date, datetime
 
+import feedparser
 from notion_client import Client
 
 from service.currency_service import CurrencyRatioResolver
-from update.helper import format_time, rich_text_update
+from update.helper import format_time, rich_text, to_do_block, heading_2_block, paragraph_block, strip_link
 
 
 class Update(ABC):
@@ -17,6 +18,15 @@ class Update(ABC):
     @abstractmethod
     def run(self):
         pass
+
+    def reset_block_children(self, block_id, updates):
+        current_children = self.client.blocks.children.list(block_id=block_id)
+        for child in current_children['results']:
+            self.client.blocks.delete(block_id=child['id'])
+        self.client.blocks.children.append(
+            block_id=block_id,
+            children=updates
+        )
 
 
 class Meeting(Update):
@@ -29,7 +39,7 @@ class Meeting(Update):
     def run(self):
         self.client.blocks.update(
             block_id=self.meetings_block_id,
-            code=rich_text_update(self.parse_meetings())
+            code=rich_text(self.parse_meetings())
         )
 
     def parse_meetings(self):
@@ -53,18 +63,14 @@ class ToDo(Update):
         self.json_to_dos = json.loads(self.to_dos)
 
     def run(self):
-        current_children = self.client.blocks.children.list(block_id=self.to_dos_block_id)
-        for child in current_children['results']:
-            self.client.blocks.delete(block_id=child['id'])
-        self.client.blocks.children.append(
+        self.reset_block_children(
             block_id=self.to_dos_block_id,
-            children=self.chunk_blocks()
+            updates=self.chunk_blocks()
         )
 
     def chunk_blocks(self):
         return [
-            {'object': 'block', 'type': 'to_do',
-             'to_do': {'rich_text': [{'type': 'text', 'text': {'content': todo}}], 'checked': False}}
+            to_do_block(todo)
             for todo in self.json_to_dos
         ]
 
@@ -94,8 +100,24 @@ class Weather(Update):
 
 
 class Headline(Update):
+    def __init__(self):
+        super().__init__()
+        self.newsletter_block_id = os.environ['NEWSLETTER_BLOCK']
+        self.feeds = os.environ['FEEDS']
+        self.feeds_json = json.loads(self.feeds)
+
     def run(self):
-        pass
+        blocks = []
+        for feed in self.feeds_json:
+            result = feedparser.parse(feed)
+            latest = result.entries[0]
+            blocks.append(heading_2_block(f'🗞️ {latest.title}'))
+            blocks.append(paragraph_block(strip_link(latest.description)))
+            blocks.append(paragraph_block(content='🔗 Read on', link=latest.link))
+        self.reset_block_children(
+            block_id=self.newsletter_block_id,
+            updates=blocks
+        )
 
 
 class Habit(Update):
@@ -147,7 +169,7 @@ class Budget(Update):
         total_comma = '{:,}'.format(total)
         self.client.blocks.update(
             block_id=self.budget_block_id,
-            code=rich_text_update(f'# $ {total_comma} #')
+            code=rich_text(f'# $ {total_comma} #')
         )
 
 
@@ -161,7 +183,7 @@ class Birthday(Update):
     def run(self):
         self.client.blocks.update(
             block_id=self.birthdays_block_id,
-            code=rich_text_update(self.parse_birthdays())
+            code=rich_text(self.parse_birthdays())
         )
 
     def parse_birthdays(self):

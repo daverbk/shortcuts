@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from service.currency_service import CurrencyRatioResolver
-from update.helper import rich_text_update, format_time
+from update.helper import rich_text, format_time
 from update.update import Meeting, ToDo, Budget, Habit, Birthday, Weather, main
 
 
@@ -66,7 +66,8 @@ def test_meeting_run(mock_notion_client):
 
     mock_notion_client.blocks.update.assert_called_once_with(
         block_id=meeting_update.meetings_block_id,
-        code={'rich_text': [{'text': {'content': '\n# Meeting 1 #\n10:20 - 11:20\n\n# Meeting 2 #\n18:20 - 20:00'}}]}
+        code={'rich_text': [
+            {'text': {'content': '\n# Meeting 1 #\n10:20 - 11:20\n\n# Meeting 2 #\n18:20 - 20:00', 'link': None}}]}
     )
 
 
@@ -81,7 +82,7 @@ def test_meeting_run_with_no_meetings(mock_notion_client):
 
     mock_notion_client.blocks.update.assert_called_once_with(
         block_id=meeting_update.meetings_block_id,
-        code={'rich_text': [{'text': {'content': '# 🤘 No meetings for today! Hooray! 🙂‍↕️ #'}}]}
+        code={'rich_text': [{'text': {'content': '# 🤘 No meetings for today! Hooray! 🙂‍↕️ #', 'link': None}}]}
     )
 
 
@@ -101,7 +102,7 @@ def test_todo_run(mock_notion_client):
     mock_notion_client.blocks.children.append.assert_called_once_with(
         block_id=todo_update.to_dos_block_id,
         children=[{'object': 'block', 'type': 'to_do',
-                   'to_do': {'rich_text': [{'type': 'text', 'text': {'content': 'Buy groceries'}}], 'checked': False}}]
+                   'to_do': {'rich_text': [{'text': {'content': 'Buy groceries', 'link': None}}]}}]
     )
 
 
@@ -136,7 +137,7 @@ def test_budget_run(mock_notion_client):
     )
     mock_notion_client.blocks.update.assert_called_with(
         block_id=budget_update.budget_block_id,
-        code={'rich_text': [{'text': {'content': '# $ 1,000.0 #'}}]}
+        code={'rich_text': [{'text': {'content': '# $ 1,000.0 #', 'link': None}}]}
     )
 
 
@@ -165,7 +166,7 @@ def test_birthday_today(mock_notion_client):
     expected_text = '# 🎉 Today 🎉 #\nAlice'
     mock_notion_client.blocks.update.assert_called_with(
         block_id=birthday.birthdays_block_id,
-        code={'rich_text': [{'text': {'content': expected_text}}]}
+        code={'rich_text': [{'text': {'content': expected_text, 'link': None}}]}
     )
 
 
@@ -180,7 +181,7 @@ def test_birthday_future(mock_notion_client):
     expected_text = '# ⏳ In 5 day(s) ⏳ #\nBob'
     mock_notion_client.blocks.update.assert_called_with(
         block_id=birthday.birthdays_block_id,
-        code={'rich_text': [{'text': {'content': expected_text}}]}
+        code={'rich_text': [{'text': {'content': expected_text, 'link': None}}]}
     )
 
 
@@ -210,21 +211,31 @@ def test_main_executes_updates(mock_updates):
         mock_class.return_value.run.assert_called_once()
 
 
-def test_get_rich_text_update():
+def test_rich_text():
     data = 'Hello, Notion!'
-    result = rich_text_update(data)
-    expected_result = {'rich_text': [{'text': {'content': data}}]}
+    result = rich_text(data)
+    expected_result = {'rich_text': [{'text': {'content': data, 'link': None}}]}
     assert result == expected_result
 
 
-def test_get_formatted_time():
+def test_rich_text_with_link():
+    data = 'Hello, Notion!'
+    result = rich_text(
+        content=data,
+        link='https://example.com'
+    )
+    expected_result = {'rich_text': [{'text': {'content': data, 'link': { 'url': 'https://example.com'}}}]}
+    assert result == expected_result
+
+
+def test_formatted_time():
     date_str = '2023-02-16T12:30:00'
     result = format_time(date_str)
     expected_result = '12:30'
     assert result == expected_result
 
 
-def test_get_formatted_time_invalid_date():
+def test_formatted_time_invalid_date():
     invalid_date_str = '2023-02-31T12:30:00'
     with pytest.raises(ValueError):
         format_time(invalid_date_str)
