@@ -7,7 +7,6 @@ from datetime import date, datetime
 from notion_client import Client
 
 from service.currency_service import CurrencyRatioResolver
-from service.weather_service import OpenMeteoWeatherService
 from update.helper import format_time, rich_text_update
 
 
@@ -64,21 +63,8 @@ class ToDo(Update):
 
     def chunk_blocks(self):
         return [
-            {
-                'object': 'block',
-                'type': 'to_do',
-                'to_do': {
-                    'rich_text': [
-                        {
-                            'type': 'text',
-                            'text': {
-                                'content': todo
-                            }
-                        }
-                    ],
-                    'checked': False
-                }
-            }
+            {'object': 'block', 'type': 'to_do',
+             'to_do': {'rich_text': [{'type': 'text', 'text': {'content': todo}}], 'checked': False}}
             for todo in self.json_to_dos
         ]
 
@@ -86,21 +72,22 @@ class ToDo(Update):
 class Weather(Update):
     def __init__(self):
         super().__init__()
-        self.weather_client = OpenMeteoWeatherService()
         self.weather_row_id = os.environ['WEATHER_ROW']
-        self.location = os.environ['LOCATION']
-        self.json_location = json.loads(self.location)
+        self.weather = os.environ['WEATHER']
+        self.weather_json = json.loads(self.weather)
 
     def run(self):
-        data = self.weather_client.get_daily(self.json_location['latitude'], self.json_location['longitude'])
+        def text_update(content):
+            return [{'text': {'content': content}}]
+
         self.client.blocks.update(
             block_id=self.weather_row_id,
             table_row={
                 'cells': [
-                    [{'text': {'content': str(int(data['max']))}}],
-                    [{'text': {'content': str(int(data['min']))}}],
-                    [{'text': {'content': str(data['sunrise'])}}],
-                    [{'text': {'content': str(data['sunset'])}}]
+                    text_update(str(self.weather_json['max'])),
+                    text_update(str(self.weather_json['min'])),
+                    text_update(format_time(self.weather_json['sunrise'])),
+                    text_update(format_time(self.weather_json['sunset']))
                 ]
             }
         )
@@ -119,10 +106,7 @@ class Habit(Update):
 
     def run(self):
         habits_db = self.client.databases.query(database_id=self.habits_database_id, filter={
-            'property': 'Created time',
-            'date': {
-                'on_or_before': date.today().isoformat()
-            }
+            'property': 'Created time', 'date': {'on_or_before': date.today().isoformat()}
         })
         today_id = habits_db['results'][0]['id']
         self.client.blocks.update(block_id=self.habits_block_id, callout={
@@ -182,7 +166,7 @@ class Birthday(Update):
 
     def parse_birthdays(self):
         birthday_date = datetime.fromisoformat(self.json_birthdays[0]['start_date'])
-        days_left = (birthday_date.replace(tzinfo=None) - datetime.today().replace(hour=0, minute=0)).days
+        days_left = (birthday_date.date() - datetime.today().date()).days
         header = f'# ⏳ In {str(days_left)} day(s) ⏳ #' if days_left > 0 else '# 🎉 Today 🎉 #'
         event_title = self.json_birthdays[0]['title']
         return f'{header}\n{event_title}'

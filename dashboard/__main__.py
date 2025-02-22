@@ -15,5 +15,6 @@ def main():
     for update in updates:
         update.run()
 
+
 if __name__ == "__main__":
     main()

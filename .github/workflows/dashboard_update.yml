@@ -15,8 +15,8 @@ on:
         description: "To dos to resolve"
         required: true
         type: string
-      location:
-        destination: "Current location"
+      weather:
+        destination: "Current weather"
         required: true
         type: string
 
@@ -46,7 +46,6 @@ jobs:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           FRANKFURTER_URL: ${{ secrets.FRANKFURTER_URL }}
           NB_RB_URL: ${{ secrets.NB_RB_URL }}
-          OPEN_METEO_URL: ${{ secrets.OPEN_METEO_URL }}
 
           BUDGET_PAGE: ${{ secrets.BUDGET_PAGE }}
           BUDGET_BLOCK: ${{ secrets.BUDGET_BLOCK }}
@@ -62,6 +61,6 @@ jobs:
           MEETINGS: ${{ github.event.inputs.meetings }}
           BIRTHDAYS: ${{ github.event.inputs.birthdays }}
           TO_DOS: ${{ github.event.inputs.to_dos }}
-          LOCATION: ${{ github.event.inputs.location }}
+          WEATHER: ${{ github.event.inputs.weather }}
         run: |
           python dashboard 
