@@ -8,7 +8,7 @@ import feedparser
 from notion_client import Client
 
 from service.currency_service import CurrencyRatioResolver
-from update.helper import format_time, rich_text, to_do_block, heading_2_block, paragraph_block, strip_link
+from update.helper import format_time, rich_text, heading_2_block, paragraph_block, strip_link, expression
 
 
 class Update(ABC):
@@ -70,8 +70,7 @@ class ToDo(Update):
 
     def chunk_blocks(self):
         return [
-            to_do_block(todo)
-            for todo in self.json_to_dos
+            paragraph_block('▶︎ ' + todo) for todo in self.json_to_dos
         ]
 
 
@@ -169,7 +168,7 @@ class Budget(Update):
         total_comma = '{:,}'.format(total)
         self.client.blocks.update(
             block_id=self.budget_block_id,
-            code=rich_text(f'# $ {total_comma} #')
+            equation=expression(f'\\${total_comma}')
         )
 
 

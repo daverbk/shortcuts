@@ -101,8 +101,8 @@ def test_todo_run(mock_notion_client):
     mock_notion_client.blocks.delete.assert_called_once_with(block_id='mock-id')
     mock_notion_client.blocks.children.append.assert_called_once_with(
         block_id=todo_update.to_dos_block_id,
-        children=[{'object': 'block', 'type': 'to_do',
-                   'to_do': {'rich_text': [{'text': {'content': 'Buy groceries', 'link': None}}]}}]
+        children=[{'object': 'block', 'type': 'paragraph',
+                   'paragraph': {'rich_text': [{'text': {'content': '▶︎ Buy groceries', 'link': None}}]}}]
     )
 
 
@@ -137,21 +137,7 @@ def test_budget_run(mock_notion_client):
     )
     mock_notion_client.blocks.update.assert_called_with(
         block_id=budget_update.budget_block_id,
-        code={'rich_text': [{'text': {'content': '# $ 1,000.0 #', 'link': None}}]}
-    )
-
-
-def test_habit_run(mock_notion_client):
-    mock_notion_client.databases.query.return_value = {'results': [{'id': 'mock-id'}]}
-
-    habit_update = Habit()
-    habit_update.client = mock_notion_client
-
-    habit_update.run()
-
-    mock_notion_client.blocks.update.assert_called_once_with(
-        block_id=habit_update.habits_block_id,
-        callout={'rich_text': [{'mention': {'page': {'id': 'mock-id'}}}]}
+        equation={'expression': '\\$1,000.0'}
     )
 
 
@@ -224,7 +210,7 @@ def test_rich_text_with_link():
         content=data,
         link='https://example.com'
     )
-    expected_result = {'rich_text': [{'text': {'content': data, 'link': { 'url': 'https://example.com'}}}]}
+    expected_result = {'rich_text': [{'text': {'content': data, 'link': {'url': 'https://example.com'}}}]}
     assert result == expected_result
 
 

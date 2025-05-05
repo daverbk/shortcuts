@@ -9,13 +9,6 @@ def strip_link(data: str):
     return data.split('| Links |')[0].rstrip('\r\n')
 
 
-def to_do_block(content):
-    return block(
-        block_type='to_do',
-        content=content
-    )
-
-
 def heading_2_block(content):
     return block(
         block_type='heading_2',
@@ -50,4 +43,10 @@ def rich_text(content, link=None):
                     }
                 }
             ]
+    }
+
+
+def expression(content):
+    return {
+        'expression': content
     }
