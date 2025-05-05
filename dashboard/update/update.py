@@ -1,14 +1,14 @@
 import json
 import os
-import textwrap
 from abc import ABC, abstractmethod
-from datetime import date, datetime
+from datetime import datetime
 
 import feedparser
 from notion_client import Client
 
 from service.currency_service import CurrencyRatioResolver
-from update.helper import format_time, rich_text, heading_2_block, paragraph_block, strip_link, expression
+from update.helper import format_time, rich_text, heading_2_block, paragraph_block, strip_link, expression, \
+    meetings_database_page
 
 
 class Update(ABC):
@@ -33,26 +33,18 @@ class Meeting(Update):
     def __init__(self):
         super().__init__()
         self.meetings = os.environ['MEETINGS']
-        self.meetings_block_id = os.environ['MEETINGS_BLOCK']
+        self.meeting_database_id = os.environ['MEETINGS_DATABASE']
         self.json_meetings = json.loads(self.meetings)
 
     def run(self):
-        self.client.blocks.update(
-            block_id=self.meetings_block_id,
-            code=rich_text(self.parse_meetings())
-        )
-
-    def parse_meetings(self):
-        result = ''
-        if self.json_meetings:
-            for meeting in self.json_meetings:
-                result += f'''
-                # {meeting['title']} #
-                {format_time(meeting['start_date'])} - {format_time(meeting['end_date'])}
-            '''
-        else:
-            result = '# 🤘 No meetings for today! Hooray! 🙂‍↕️ #'
-        return textwrap.dedent(result).rstrip('\r\n')
+        data = self.client.databases.query(database_id=self.meeting_database_id)
+        for page in data['results']:
+            self.client.pages.update(page_id=page['id'], archived=True)
+        for meeting in self.json_meetings:
+            self.client.pages.create(
+                parent={'database_id': self.meeting_database_id},
+                properties=meetings_database_page(meeting['title'], meeting['start_date'], meeting['end_date'])
+            )
 
 
 class ToDo(Update):
@@ -119,22 +111,6 @@ class Headline(Update):
         )
 
 
-class Habit(Update):
-    def __init__(self):
-        super().__init__()
-        self.habits_database_id = os.environ['HABITS_DB']
-        self.habits_block_id = os.environ['HABITS_BLOCK']
-
-    def run(self):
-        habits_db = self.client.databases.query(database_id=self.habits_database_id, filter={
-            'property': 'Created time', 'date': {'on_or_before': date.today().isoformat()}
-        })
-        today_id = habits_db['results'][0]['id']
-        self.client.blocks.update(block_id=self.habits_block_id, callout={
-            'rich_text': [{'mention': {'page': {'id': today_id}}}]
-        })
-
-
 class Budget(Update):
     currencies = {
         'pln': 'PlnUsdRate',
@@ -198,7 +174,6 @@ def main():
         Budget(),
         Meeting(),
         ToDo(),
-        Habit(),
         Weather(),
         Birthday(),
         Headline()

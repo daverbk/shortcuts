@@ -7,7 +7,7 @@ import pytest
 
 from service.currency_service import CurrencyRatioResolver
 from update.helper import rich_text, format_time
-from update.update import Meeting, ToDo, Budget, Habit, Birthday, Weather, main
+from update.update import Meeting, ToDo, Budget, Birthday, Weather, main
 
 
 @pytest.fixture
@@ -21,14 +21,12 @@ def mock_updates():
     with patch('update.update.Budget') as MockBudget, \
             patch('update.update.Meeting') as MockMeeting, \
             patch('update.update.ToDo') as MockToDo, \
-            patch('update.update.Habit') as MockHabit, \
             patch('update.update.Weather') as MockWeather, \
             patch('update.update.Birthday') as MockBirthday, \
             patch('update.update.Headline') as MockHeadline:
         MockBudget.return_value.run = MagicMock()
         MockMeeting.return_value.run = MagicMock()
         MockToDo.return_value.run = MagicMock()
-        MockHabit.return_value.run = MagicMock()
         MockWeather.return_value.run = MagicMock()
         MockBirthday.return_value.run = MagicMock()
         MockHeadline.return_value.run = MagicMock()
@@ -37,7 +35,6 @@ def mock_updates():
             'Budget': MockBudget,
             'Meeting': MockMeeting,
             'ToDo': MockToDo,
-            'Habit': MockHabit,
             'Weather': MockWeather,
             'Birthday': MockBirthday,
             'Headline': MockHeadline
@@ -52,11 +49,6 @@ def test_meeting_run(mock_notion_client):
             'title': 'Meeting 1',
             'start_date': '2025-02-23T10:20:00+03:00',
             'end_date': '2025-02-23T11:20:00+03:00'
-        },
-        {
-            'title': 'Meeting 2',
-            'start_date': '2025-02-23T18:20:00+03:00',
-            'end_date': '2025-02-23T20:00:00+03:00'
         }
     ])
     meeting_update = Meeting()
@@ -64,25 +56,25 @@ def test_meeting_run(mock_notion_client):
 
     meeting_update.run()
 
-    mock_notion_client.blocks.update.assert_called_once_with(
-        block_id=meeting_update.meetings_block_id,
-        code={'rich_text': [
-            {'text': {'content': '\n# Meeting 1 #\n10:20 - 11:20\n\n# Meeting 2 #\n18:20 - 20:00', 'link': None}}]}
-    )
-
-
-def test_meeting_run_with_no_meetings(mock_notion_client):
-    mock_notion_client.blocks.update.return_value = None
-
-    os.environ['MEETINGS'] = json.dumps([])
-    meeting_update = Meeting()
-    meeting_update.client = mock_notion_client
-
-    meeting_update.run()
-
-    mock_notion_client.blocks.update.assert_called_once_with(
-        block_id=meeting_update.meetings_block_id,
-        code={'rich_text': [{'text': {'content': '# 🤘 No meetings for today! Hooray! 🙂‍↕️ #', 'link': None}}]}
+    mock_notion_client.pages.create.assert_called_with(
+        parent={'database_id': ''},
+        properties={
+            'Name': {
+                'title': [
+                    {
+                        'text': {
+                            'content': 'Meeting 1'
+                        }
+                    }
+                ]
+            },
+            'Date': {
+                'date': {
+                    'start': '2025-02-23T10:20:00+03:00',
+                    'end': '2025-02-23T11:20:00+03:00'
+                }
+            }
+        }
     )
 
 

@@ -49,15 +49,13 @@ jobs:
 
           BUDGET_PAGE: ${{ secrets.BUDGET_PAGE }}
           BUDGET_BLOCK: ${{ secrets.BUDGET_BLOCK }}
-          HABITS_BLOCK: ${{ secrets.HABITS_BLOCK }}
           TO_DOS_BLOCK: ${{ secrets.TO_DOS_BLOCK }}
-          MEETINGS_BLOCK: ${{ secrets.MEETINGS_BLOCK }}
+          MEETINGS_DATABASE: ${{ secrets.MEETINGS_DATABASE }}
           BIRTHDAYS_BLOCK: ${{ secrets.BIRTHDAYS_BLOCK }}
           NEWSLETTER_BLOCK: ${{ secrets.NEWSLETTER_BLOCK }}
           WEATHER_ROW: ${{ secrets.WEATHER_ROW }}
 
           BUDGET_DB: ${{ secrets.BUDGET_DB }}
-          HABITS_DB: ${{ secrets.HABITS_DB }}
 
           FEEDS: ${{ secrets.FEEDS }}
           MEETINGS: ${{ github.event.inputs.meetings }}

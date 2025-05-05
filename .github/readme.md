@@ -56,7 +56,7 @@ sequenceDiagram
   activate CurrencyAPIs
   CurrencyAPIs -->> PythonScript: Actual exchange rates
   deactivate CurrencyAPIs
-  PythonScript ->> NotionAPI: Update budget, todos, habits, weather, birthdays, meetings, headlines panels
+  PythonScript ->> NotionAPI: Update budget, todos, weather, birthdays, meetings, headlines panels
   deactivate PythonScript
   PythonScript --x GitHubActions: 
   deactivate GitHubActions

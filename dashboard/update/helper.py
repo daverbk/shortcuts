@@ -50,3 +50,23 @@ def expression(content):
     return {
         'expression': content
     }
+
+
+def meetings_database_page(title, start, end):
+    return {
+        'Name': {
+            'title': [
+                {
+                    'text': {
+                        'content': title
+                    }
+                }
+            ]
+        },
+        'Date': {
+            'date': {
+                'start': start,
+                'end': end
+            }
+        }
+    }
