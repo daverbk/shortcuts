@@ -9,7 +9,12 @@ env = [
     "TO_DOS_BLOCK=",
     "BIRTHDAYS_BLOCK=",
     "BUDGET_DB=",
-    "WEATHER_ROW="
+    "WEATHER_ROW=",
+    "BROKER_BLOCK=",
+    "PROFIT_BLOCK=",
+    "INVESTMENT_PAGE=",
+    "TRADERNET_PUBLIC_KEY=",
+    "TRADERNET_PRIVATE_KEY="
 ]
 
 [tool.coverage.report]

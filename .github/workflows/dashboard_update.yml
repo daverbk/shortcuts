@@ -44,9 +44,14 @@ jobs:
       - name: Update Dashboard
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          TRADERNET_PUBLIC_KEY: ${{ secrets.TRADERNET_PUBLIC_KEY }}
+          TRADERNET_PRIVATE_KEY: ${{ secrets.TRADERNET_PRIVATE_KEY }}
           FRANKFURTER_URL: ${{ secrets.FRANKFURTER_URL }}
           NB_RB_URL: ${{ secrets.NB_RB_URL }}
 
+          BROKER_BLOCK: ${{ secrets.BROKER_BLOCK }}
+          PROFIT_BLOCK: ${{ secrets.PROFIT_BLOCK }}
+          INVESTMENT_PAGE: ${{ secrets.INVESTMENT_PAGE }}
           BUDGET_PAGE: ${{ secrets.BUDGET_PAGE }}
           BUDGET_BLOCK: ${{ secrets.BUDGET_BLOCK }}
           TO_DOS_BLOCK: ${{ secrets.TO_DOS_BLOCK }}

@@ -5,3 +5,4 @@ pytest-env
 pytest-cov
 coveralls
 feedparser
+tradernet-sdk

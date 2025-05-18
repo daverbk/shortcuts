@@ -18,12 +18,15 @@ def mock_notion_client():
 
 @pytest.fixture
 def mock_updates():
-    with patch('update.update.Budget') as MockBudget, \
+    with patch('update.update.Investment') as MockInvestment, \
+            patch('update.update.Budget') as MockBudget, \
             patch('update.update.Meeting') as MockMeeting, \
             patch('update.update.ToDo') as MockToDo, \
             patch('update.update.Weather') as MockWeather, \
             patch('update.update.Birthday') as MockBirthday, \
             patch('update.update.Headline') as MockHeadline:
+
+        MockInvestment.return_value.run = MagicMock()
         MockBudget.return_value.run = MagicMock()
         MockMeeting.return_value.run = MagicMock()
         MockToDo.return_value.run = MagicMock()
@@ -32,6 +35,7 @@ def mock_updates():
         MockHeadline.return_value.run = MagicMock()
 
         yield {
+            'Investment': MockInvestment,
             'Budget': MockBudget,
             'Meeting': MockMeeting,
             'ToDo': MockToDo,

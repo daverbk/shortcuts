@@ -5,6 +5,7 @@ from datetime import datetime
 
 import feedparser
 from notion_client import Client
+from tradernet.PublicApiClient import PublicApiClient
 
 from service.currency_service import CurrencyRatioResolver
 from update.helper import format_time, rich_text, heading_2_block, paragraph_block, strip_link, expression, \
@@ -169,8 +170,63 @@ class Birthday(Update):
         return f'{header}\n{event_title}'
 
 
+class Investment(Update):
+    def __init__(self):
+        super().__init__()
+        self.broker_block_id = os.environ['BROKER_BLOCK']
+        self.profit_block_id = os.environ['PROFIT_BLOCK']
+        self.investment_page_id = os.environ['INVESTMENT_PAGE']
+        self.public_key = os.environ['TRADERNET_PUBLIC_KEY']
+        self.private_key = os.environ['TRADERNET_PRIVATE_KEY']
+        self.info = PublicApiClient(self.public_key, self.private_key, 2) \
+            .sendRequest('getPositionJson')['result']['ps']
+
+    def run(self):
+        total_usd = self.count_usd_total()
+        total_positions = self.count_positions_totals('s')
+        total_profits = self.count_positions_totals('profit_close')
+        total = total_positions + total_profits + total_usd
+        self.update_investment_block(total, self.broker_block_id)
+        self.update_investment_block(total_profits, self.profit_block_id)
+        self.update_investment_page(total)
+
+    def count_usd_total(self):
+        return sum(
+            map(
+                lambda acc: acc['s'],
+                filter(
+                    lambda account: account['curr'] == 'USD',
+                    self.info['acc']
+                )
+            )
+        )
+
+    def count_positions_totals(self, prop):
+        return sum(
+            map(
+                lambda pos: pos[prop],
+                self.info['pos']
+            )
+        )
+
+    def update_investment_block(self, amount, block_id):
+        amount_comma = '{:,}'.format(amount)
+        self.client.blocks.update(
+            block_id=block_id,
+            equation=expression(f'\\${amount_comma}')
+        )
+
+    def update_investment_page(self, amount):
+        self.client.pages.update(page_id=self.investment_page_id, properties={
+            'Sum': {
+                'number': amount
+            }
+        })
+
+
 def main():
     updates = [
+        Investment(),
         Budget(),
         Meeting(),
         ToDo(),
