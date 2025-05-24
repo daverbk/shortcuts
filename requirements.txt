@@ -1,8 +1,0 @@
-httpx
-notion-client
-pytest
-pytest-env
-pytest-cov
-coveralls
-feedparser
-tradernet-sdk
