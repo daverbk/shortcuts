@@ -69,4 +69,4 @@ jobs:
           TO_DOS: ${{ github.event.inputs.to_dos }}
           WEATHER: ${{ github.event.inputs.weather }}
         run: |
-          python dashboard 
+          poetry run python dashboard 
